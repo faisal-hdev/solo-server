@@ -44,6 +44,22 @@ async function run() {
       res.send(result);
     });
 
+    // Save a bid data in db
+    app.post("/bid", async (req, res) => {
+      const bidData = req.body;
+      console.log(bidData);
+      const result = await bidsCollection.insertOne(bidData);
+      res.send(result);
+    });
+
+    // Save a job data in db
+    app.post("/job", async (req, res) => {
+      const jobData = req.body;
+      console.log(jobData);
+      const result = await jobsCollection.insertOne(jobData);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
