@@ -5,7 +5,6 @@ require("dotenv").config();
 const port = process.env.PORT || 9000;
 
 const app = express();
-
 const corsOption = {
   origin: ["http://localhost:5173", "http://localhost:5174"],
   Credential: true,
@@ -52,10 +51,17 @@ async function run() {
       res.send(result);
     });
 
+    // Delete a job data from db
+    app.delete("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobsCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Save a bid data in db
     app.post("/bid", async (req, res) => {
       const bidData = req.body;
-      console.log(bidData);
       const result = await bidsCollection.insertOne(bidData);
       res.send(result);
     });
@@ -63,7 +69,6 @@ async function run() {
     // Save a job data in db
     app.post("/job", async (req, res) => {
       const jobData = req.body;
-      console.log(jobData);
       const result = await jobsCollection.insertOne(jobData);
       res.send(result);
     });
