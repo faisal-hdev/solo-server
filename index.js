@@ -59,6 +59,21 @@ async function run() {
       res.send(result);
     });
 
+    // update a job in db
+    app.put("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const jobData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          ...jobData,
+        },
+      };
+      const result = await jobsCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
     // Save a bid data in db
     app.post("/bid", async (req, res) => {
       const bidData = req.body;
