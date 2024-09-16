@@ -24,13 +24,23 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
 async function run() {
   try {
     const jobsCollection = client.db("solosphere").collection("jobs");
     const bidsCollection = client.db("solosphere").collection("bids");
 
+    // Save a job data in db
+    app.post("/job", async (req, res) => {
+      // console.log(req, res);
+      const jobData = req.body;
+      const result = await jobsCollection.insertOne(jobData);
+      res.send(result);
+    });
+
     // get the all jobs data from db
     app.get("/jobs", async (req, res) => {
+      console.log(req, res);
       const result = await jobsCollection.find().toArray();
       res.send(result);
     });
@@ -81,13 +91,6 @@ async function run() {
       res.send(result);
     });
 
-    // Save a job data in db
-    app.post("/job", async (req, res) => {
-      const jobData = req.body;
-      const result = await jobsCollection.insertOne(jobData);
-      res.send(result);
-    });
-
     // get all bids for user by email from db
     app.get("/my-bids/:email", async (req, res) => {
       const email = req.params.email;
@@ -101,6 +104,18 @@ async function run() {
       const email = req.params.email;
       const query = { "buyer.email": email };
       const result = await bidsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // Update bid status
+    app.patch("/bid/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: status,
+      };
+      const result = await bidsCollection.updateOne(query, updateDoc);
       res.send(result);
     });
 
