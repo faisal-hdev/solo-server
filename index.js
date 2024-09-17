@@ -1,18 +1,26 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+
 const port = process.env.PORT || 9000;
 
 const app = express();
-const corsOption = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
-  Credential: true,
+const corsOptions = {
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    // "https://solosphere.web.app",
+  ],
   optionSuccessStatus: 200,
+  credentials: true,
 };
 
-app.use(cors(corsOption));
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.s3zryfx.mongodb.net/?appName=Cluster0`;
 
@@ -29,6 +37,21 @@ async function run() {
   try {
     const jobsCollection = client.db("solosphere").collection("jobs");
     const bidsCollection = client.db("solosphere").collection("bids");
+
+    // JWT-Json Web Token ---> Generate
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "7d",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
 
     // Save a job data in db
     app.post("/job", async (req, res) => {
