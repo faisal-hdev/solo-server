@@ -90,6 +90,17 @@ async function run() {
 
     // get all the jobs posted by a specific user
     app.get("/jobs/:email", async (req, res) => {
+      const token = req.cookies?.token;
+      if (token) {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+          if (err) {
+            return console.log(err);
+            // return
+          }
+          console.log(decoded);
+        });
+      }
+      console.log(token);
       const email = req.params.email;
       const query = { "buyer.email": email };
       const result = await jobsCollection.find(query).toArray();
