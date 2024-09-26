@@ -114,7 +114,7 @@ async function run() {
       if (tokenEmail !== email) {
         res.status(403).send({ message: "forbidden Access" });
       }
-      console.log("From token", tokenData);
+      console.log("From token", tokenEmail);
       const query = { "buyer.email": email };
       const result = await jobsCollection.find(query).toArray();
       res.send(result);
@@ -146,18 +146,29 @@ async function run() {
     // Save a bid data in db
     app.post("/bid", async (req, res) => {
       const bidData = req.body;
+      // Check if its a duplicate request
+      const query = {
+        email: bidData.email,
+        jobId: bidData.jobId,
+      };
+      const alreadyApplied = await bidsCollection.findOne(query);
+      console.log(alreadyApplied);
+      if (alreadyApplied) {
+        return res
+          .status(400)
+          .send("You have already placed a bid on this job.");
+      }
       const result = await bidsCollection.insertOne(bidData);
       res.send(result);
     });
 
     // get all bids for user by email from db
     app.get("/my-bids/:email", verifyToken, async (req, res) => {
-      // const email = req.params.email;
-      const tokenEmail = req.user.email;
       const email = req.params.email;
-      if (tokenEmail !== email) {
-        res.status(403).send({ message: "forbidden Access" });
-      }
+      // const tokenEmail = req.user.email;
+      // if (tokenEmail !== email) {
+      //   res.status(403).send({ message: "forbidden Access" });
+      // }
       const query = { email };
       const result = await bidsCollection.find(query).toArray();
       res.send(result);
@@ -165,12 +176,11 @@ async function run() {
 
     // get all bids request from db for job owner
     app.get("/bid-request/:email", verifyToken, async (req, res) => {
-      // const email = req.params.email;
-      const tokenEmail = req.user.email;
       const email = req.params.email;
-      if (tokenEmail !== email) {
-        res.status(403).send({ message: "forbidden Access" });
-      }
+      // const tokenEmail = req.user.email;
+      // if (tokenEmail !== email) {
+      //   res.status(403).send({ message: "forbidden Access" });
+      // }
       const query = { "buyer.email": email };
       const result = await bidsCollection.find(query).toArray();
       res.send(result);
