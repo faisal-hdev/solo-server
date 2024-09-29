@@ -31,7 +31,6 @@ const verifyToken = (req, res, next) => {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
         console.log(err);
-
         return res.status(401).send({ message: "Unauthorized Access" });
       }
       console.log(decoded);
@@ -196,6 +195,30 @@ async function run() {
       };
       const result = await bidsCollection.updateOne(query, updateDoc);
       res.send(result);
+    });
+
+    // get the all jobs data from db for pagination
+    app.get("/all-jobs", async (req, res) => {
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page) - 1;
+
+      console.log(size, page);
+
+      const result = await jobsCollection
+        .find(query)
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      res.send(result);
+    });
+
+    // get the all jobs data count from db
+    app.get("/jobs-count", async (req, res) => {
+      console.log(req, res);
+      const count = await jobsCollection.countDocuments();
+      res.send({
+        count,
+      });
     });
 
     // Send a ping to confirm a successful connection
